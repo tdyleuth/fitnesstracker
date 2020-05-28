@@ -1,7 +1,5 @@
 const { 
     client,
-    getAllUsers,
-    createUser,
  } = require('./index');
 
 
