@@ -9,6 +9,8 @@ const {
     updateActivity,
     getAllRoutines,
     createRoutine,
+    updateRoutine,
+    addActivityToRoutine,
     
  } = require('./index');
 
@@ -35,11 +37,22 @@ async function testDB() {
    const activity = await updateActivity(activities[0].id, {
        name: 'yoga',
        description: 'Yoga for an hour'
-   })
+   });
    console.log("Result", activity)
    
-   console.log("Finished database tests!");
-   
+   console.log("Testing getAllRoutines")
+   const routines = await getAllRoutines();
+   console.log("Result:", routines)
+
+   console.log("Testing updateRoutine")
+   const updatedRoutine = await updateRoutine(routines[0].id, {
+       name: 'Back Day',
+       goal: 'Work on on those back muscles',
+       public: false
+   }); 
+   console.log("Result", updatedRoutine)
+
+   console.log("Finished testing DB")
    }
    catch (error){
     console.error("Error testing DB!")
@@ -130,8 +143,6 @@ async function createInitialUsers() {
          name: 'Mona Lisa Navaorro'
      });
 
-     console.log(tony);
-     console.log(mona);
      console.log("Finished creating users!");
    }
    catch(error){
@@ -158,9 +169,7 @@ async function createInitialUsers() {
           description: 'Go for 10 min jog'
       });
 
-      console.log(biking);
-      console.log(swimming);
-      console.log(jogging);
+      
       console.log("Finished creating activities!")
      
 
@@ -188,8 +197,7 @@ async function createInitialUsers() {
         goal: 'Total body workout for a month',
         public: true
     });
-    console.log(legDay)
-    console.log(fullBody)
+  
     console.log("Finished creating routines")
 
   } catch (error) {
