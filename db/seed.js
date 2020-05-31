@@ -1,7 +1,54 @@
 const { 
     client,
+    createUser,
+    getUserByUsername,
+    getAllUsers,
+    updateUser,
+    getAllActivities,
+    createActivity,
+    updateActivity,
+    getAllRoutines,
+    createRoutine,
+    
  } = require('./index');
 
+async function testDB() {
+   try {
+
+   console.log("Testing getAllUsers")
+   const users = await getAllUsers();
+   console.log("Result:", users)
+
+
+   console.log("Testing updateUser");
+   const result = await updateUser(users[0].id, {
+    name: "Tony Montana",
+  });
+
+   console.log("Result:", result);
+   
+   console.log("Testing getAllActivities")
+   const activities = await getAllActivities();
+   console.log("Result:", activities)
+
+   console.log("Testing updateActivity")
+   const activity = await updateActivity(activities[0].id, {
+       name: 'yoga',
+       description: 'Yoga for an hour'
+   })
+   console.log("Result", activity)
+   
+   console.log("Finished database tests!");
+   
+   }
+   catch (error){
+    console.error("Error testing DB!")
+    throw error;
+   }
+
+
+
+}
 
 async function dropTables() {
     try {
@@ -28,7 +75,9 @@ async function dropTables() {
              `CREATE TABLE users (
               id SERIAL PRIMARY KEY,
               username VARCHAR(255) UNIQUE NOT NULL,
-              password VARCHAR(255) NOT NULL
+              password VARCHAR(255) NOT NULL,
+              name VARCHAR(255) NOT NULL,
+              active boolean DEFAULT true
              );`
          );
 
@@ -44,8 +93,9 @@ async function dropTables() {
              `CREATE TABLE routines (
               id SERIAL PRIMARY KEY,
               "creatorId" INTEGER REFERENCES users(id) NOT NULL,
-              public BOOLEAN DEFAULT false,
-              goal TEXT NOT NULL
+              name VARCHAR(255) UNIQUE NOT NULL,
+              goal TEXT NOT NULL,
+              public BOOLEAN DEFAULT false
              );`
          );
 
@@ -66,17 +116,106 @@ async function dropTables() {
      }
   }
 
+async function createInitialUsers() {
+   try {
+     const tony = await createUser({
+         username: 'tony', 
+         password: 'tony123',
+         name: 'Tony Dyleuth'
+     });
+
+     const mona = await createUser({
+         username: 'mona',
+         password: 'lisa12',
+         name: 'Mona Lisa Navaorro'
+     });
+
+     console.log(tony);
+     console.log(mona);
+     console.log("Finished creating users!");
+   }
+   catch(error){
+       console.error("Error creating users!")
+       throw error;
+   }
+ }
+
+
+ async function createInitialActivities() {
+   try {
+      const biking = await createActivity({
+         name: 'Biking',
+         description: 'Go biking for 3 miles'
+      });
+
+      const swimming = await createActivity({
+          name:'swimming',
+          description: 'Swim 20 laps in the pool'
+      });
+
+      const jogging = await createActivity({
+          name: 'jogging',
+          description: 'Go for 10 min jog'
+      });
+
+      console.log(biking);
+      console.log(swimming);
+      console.log(jogging);
+      console.log("Finished creating activities!")
+     
+
+   } catch(error){
+     console.error("Error creating activities!")
+     throw error;
+   }
+ }
+
+
+ async function createInitialRoutines() {
+  try {
+    const [ tony, mona] = await getAllUsers();
+    console.log(tony.id) 
+    
+    const legDay = await createRoutine({
+        creatorId: tony.id,
+        name: 'Leg Day',
+        goal: 'Get those legs stonger!',
+        public: false
+    });
+    const fullBody = await createRoutine({
+        creatorId: mona.id,
+        name: 'Full Body Day',
+        goal: 'Total body workout for a month',
+        public: true
+    });
+    console.log(legDay)
+    console.log(fullBody)
+    console.log("Finished creating routines")
+
+  } catch (error) {
+      console.log("Error creating routines!")
+      throw error;
+  }
+ }
+
+
 
   async function rebuildDB(){
       try{
           client.connect();
+          console.log("Connected to DB!")
 
           await dropTables();
           await createTables();
+          await createInitialUsers();
+          await createInitialActivities();
+          await createInitialRoutines();
       } catch (error) {
           throw error;
       }
   }
   
-
-  rebuildDB()
+rebuildDB()
+.then(testDB)
+.catch(console.error)
+.finally(() => client.end());
