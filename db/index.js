@@ -3,7 +3,7 @@ const { Client } = require('pg');
 const client = new Client('postgres://localhost:5432/fitness-dev');
 
 
-
+//User helper functions
 async function createUser({
     username,
     password,
@@ -80,6 +80,8 @@ async function updateUser(id, fields = {}) {
     }
   }
 
+
+// Activities helper functions
 async function getAllActivities() {
    try {
     
@@ -141,6 +143,9 @@ async function updateActivity(id, fields = {}) {
     }
   }
 
+
+
+//Routine helper functions
 
 async function createRoutine({
    creatorId,
@@ -234,10 +239,10 @@ async function getAllRoutinesByUser({
   catch(error){
     throw error;
   }
-
 }
 
 
+//Routine_activities helper functions
 
 async function addActivityToRoutine({
   routineId,
@@ -246,20 +251,67 @@ async function addActivityToRoutine({
   duration
 }) {
    try {
-     const { rows: [ routine_activity ]} = client.query(`
+     const { rows: [ result ] } = await client.query(`
         INSERT INTO routine_activities("routineId","activityId",count,duration)
-        VALUES ($1,$2,$3,$4)
-        ON CONFLICT ("routineId","activityId") DO NOTHING;
+        VALUES ($1,$2,$3,$4);
      `, [routineId,activityId,count,duration]);
 
-    return routine_activity;
+    return result;
    }
    catch(error){
      throw error;
    }
-
 }
 
+async function getAllRoutineActivities() {
+  try {
+    const { rows } = await client.query(`
+      SELECT * FROM routine_activities;
+    `)
+  return rows;
+
+  } catch (error){
+    throw error;
+  }
+}
+
+
+async function updateRoutineActivity(id, fields = {}) {
+
+  const setString = Object.keys(fields).map(
+      (key, index) => `"${ key }"=$${ index + 1 }`
+    ).join(', ');
+  
+    if (setString.length === 0) {
+      return;
+    }
+  
+    try {
+      const { rows: [ routine_activity ] }= await client.query(`
+        UPDATE routine_activities
+        SET ${ setString }
+        WHERE id=${ id }
+        RETURNING *;
+      `, Object.values(fields));
+  
+      return routine_activity;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+async function destroyRoutineActivity({
+    id
+}) {
+  try {
+      await client.query(`
+      DELETE FROM routine_activities
+      WHERE id = $1;
+      `,[id])
+   } catch(error){
+      throw error;
+  }
+}
 
 
 module.exports = {
@@ -277,6 +329,9 @@ module.exports = {
     createRoutine,
     updateRoutine,
     addActivityToRoutine,
+    getAllRoutineActivities,
+    updateRoutineActivity,
+    destroyRoutineActivity,
 }
 
 

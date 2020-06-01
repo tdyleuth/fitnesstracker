@@ -11,6 +11,9 @@ const {
     createRoutine,
     updateRoutine,
     addActivityToRoutine,
+    getAllRoutineActivities,
+    updateRoutineActivity,
+    destroyRoutineActivity,
     
  } = require('./index');
 
@@ -51,6 +54,22 @@ async function testDB() {
        public: false
    }); 
    console.log("Result", updatedRoutine)
+
+   console.log("Testing getAllRoutineActivities")
+   const routinesActivities = await getAllRoutineActivities();
+   console.log("Result:", routines)
+
+   console.log("Testing updateRoutineActivity")
+   const updateedRoutineActivitiesResults = await updateRoutineActivity(routinesActivities[0].id, {
+      count:10,
+      duration:30
+   });
+
+   console.log("Testing destroyRoutineActivitY")
+   const destroyedActivityResults = await destroyRoutineActivity ({
+       id: 1
+   });
+
 
    console.log("Finished testing DB")
    }
@@ -116,8 +135,10 @@ async function dropTables() {
              `CREATE TABLE routine_activities (
               id SERIAL PRIMARY KEY,
               "routineId" INTEGER REFERENCES routines(id) NOT NULL,
-              "activityId" INTEGER REFERENCES activities(id),
-              count INTEGER NOT NULL
+              "activityId" INTEGER REFERENCES activities(id) NOT NULL,
+              count INTEGER,
+              duration INTEGER,
+              UNIQUE ("routineId","activityId")
              );`
          );
   
@@ -142,6 +163,12 @@ async function createInitialUsers() {
          password: 'lisa12',
          name: 'Mona Lisa Navaorro'
      });
+
+     const jack = await createUser({
+        username: 'jack',
+        password: 'password12',
+        name: 'Jack Smith'
+    });
 
      console.log("Finished creating users!");
    }
@@ -169,6 +196,11 @@ async function createInitialUsers() {
           description: 'Go for 10 min jog'
       });
 
+      const pushups = await createActivity({
+        name: 'pushups',
+        description: 'Do as many pushups in a hour'
+    });
+
       
       console.log("Finished creating activities!")
      
@@ -182,8 +214,8 @@ async function createInitialUsers() {
 
  async function createInitialRoutines() {
   try {
-    const [ tony, mona] = await getAllUsers();
-    console.log(tony.id) 
+    const [ tony, mona, jack ] = await getAllUsers();
+
     
     const legDay = await createRoutine({
         creatorId: tony.id,
@@ -197,6 +229,14 @@ async function createInitialUsers() {
         goal: 'Total body workout for a month',
         public: true
     });
+
+    const armsDay = await createRoutine({
+        creatorId: jack.id,
+        name: 'Arm and Chest Day',
+        goal: 'Work out arms and chest muscles',
+        public: true
+    });
+  
   
     console.log("Finished creating routines")
 
@@ -204,6 +244,54 @@ async function createInitialUsers() {
       console.log("Error creating routines!")
       throw error;
   }
+ }
+
+ async function createInitialRoutineActivities() {
+    try {
+        const [back, fullBody, armChest] = await getAllRoutines();
+        const [yoga, swimming, jogging, pushups] = await getAllActivities();
+
+        await addActivityToRoutine({
+            routineId: armChest.id,
+            activityId: pushups.id,
+            duration: 60,
+            count: 100
+        });
+
+        await addActivityToRoutine({
+            routineId: armChest.id,
+            activityId: swimming.id,
+            duration: 60,
+            count: 30
+        });
+
+        await addActivityToRoutine({
+            routineId: fullBody.id,
+            activityId: yoga.id,
+            duration: 120
+        });
+
+        await addActivityToRoutine({
+            routineId: back.id,
+            activityId: swimming.id,
+            duration: 120
+        });
+
+        await addActivityToRoutine({
+            routineId: fullBody.id,
+            activityId: jogging.id,
+            duration: 30
+        })
+
+
+    console.log("Finished adding Activity to Routine")
+    }
+    catch(error){
+        console.log("Error adding Activity to Routine")
+        throw error;
+    
+    }
+
  }
 
 
@@ -218,6 +306,7 @@ async function createInitialUsers() {
           await createInitialUsers();
           await createInitialActivities();
           await createInitialRoutines();
+          await createInitialRoutineActivities();
       } catch (error) {
           throw error;
       }
