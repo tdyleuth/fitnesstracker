@@ -8,10 +8,13 @@ const {
     createActivity,
     updateActivity,
     getAllRoutines,
+    getPublicRoutines,
+    getAllRoutinesByUser,
+    getPublicRoutinesByActivity,
     createRoutine,
     updateRoutine,
+    getAllRoutinesActivities,
     addActivityToRoutine,
-    getAllRoutineActivities,
     updateRoutineActivity,
     destroyRoutineActivity,
     
@@ -47,6 +50,25 @@ async function testDB() {
    const routines = await getAllRoutines();
    console.log("Result:", routines)
 
+   console.log("Testing PublicAllRoutines")
+   const publicRoutines = await getPublicRoutines();
+   console.log("Result:", publicRoutines)
+
+   console.log("Testing getPublicAllRoutinesByUser")
+   const publicRoutinesByUser = await getAllRoutinesByUser({
+       username: 'tony'
+   });
+   console.log("Result:", publicRoutinesByUser)
+
+
+   console.log("Testing getAllRoutinesByActivity")
+   const AllRoutinesByActivity = await getPublicRoutinesByActivity({
+       activityId: '1'
+   });
+   console.log("Result:", AllRoutinesByActivity)
+
+
+
    console.log("Testing updateRoutine")
    const updatedRoutine = await updateRoutine(routines[0].id, {
        name: 'Back Day',
@@ -56,19 +78,22 @@ async function testDB() {
    console.log("Result", updatedRoutine)
 
    console.log("Testing getAllRoutineActivities")
-   const routinesActivities = await getAllRoutineActivities();
-   console.log("Result:", routines)
+   const routinesActivities = await getAllRoutinesActivities();
+   console.log("Result:", routinesActivities)
 
    console.log("Testing updateRoutineActivity")
    const updateedRoutineActivitiesResults = await updateRoutineActivity(routinesActivities[0].id, {
       count:10,
       duration:30
    });
+   console.log("Result:", updateedRoutineActivitiesResults)
 
    console.log("Testing destroyRoutineActivitY")
    const destroyedActivityResults = await destroyRoutineActivity ({
        id: 1
    });
+   console.log("Result:", destroyedActivityResults)
+
 
 
    console.log("Finished testing DB")
@@ -248,38 +273,36 @@ async function createInitialUsers() {
 
  async function createInitialRoutineActivities() {
     try {
-        const [back, fullBody, armChest] = await getAllRoutines();
-        const [yoga, swimming, jogging, pushups] = await getAllActivities();
-
+       
         await addActivityToRoutine({
-            routineId: armChest.id,
-            activityId: pushups.id,
+            routineId: 3,
+            activityId: 4,
             duration: 60,
             count: 100
         });
 
         await addActivityToRoutine({
-            routineId: armChest.id,
-            activityId: swimming.id,
+            routineId: 3,
+            activityId: 2,
             duration: 60,
             count: 30
         });
 
         await addActivityToRoutine({
-            routineId: fullBody.id,
-            activityId: yoga.id,
+            routineId: 2,
+            activityId: 1,
             duration: 120
         });
 
         await addActivityToRoutine({
-            routineId: back.id,
-            activityId: swimming.id,
+            routineId: 1,
+            activityId: 2,
             duration: 120
         });
 
         await addActivityToRoutine({
-            routineId: fullBody.id,
-            activityId: jogging.id,
+            routineId: 2,
+            activityId: 3,
             duration: 30
         })
 
