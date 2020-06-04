@@ -25,15 +25,37 @@ async function createUser({
         }
    }
 
+
+   async function getUserById(userId) {
+    try {
+      const { rows: [ user ] } = await client.query(`
+        SELECT *
+        FROM users
+        WHERE id=${ userId }
+      `);
+  
+      if (!user) {
+        return null
+      }
+
+  
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+
+
 async function getUserByUsername(username) {
     try {
-      const { rows: [ users ] } = await client.query(`
+      const { rows: [user] } = await client.query(`
         SELECT *
         FROM users
         WHERE username=$1
       `, [username]);
   
-      return users;
+      return user;
     } catch (error) {
       throw error;
     }
@@ -43,7 +65,7 @@ async function getAllUsers() {
    
   try {
     const { rows } = await client.query(`
-       SELECT id, users, name, active 
+       SELECT *
        FROM users;
     `);
 
@@ -367,6 +389,7 @@ module.exports = {
     client,
     createUser,
     getUserByUsername,
+    getUserById,
     getAllUsers,
     updateUser,
     getAllActivities,
