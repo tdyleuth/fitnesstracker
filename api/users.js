@@ -1,6 +1,8 @@
 const express = require('express');
 const usersRouter = express.Router();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
 
 const  { getAllUsers, getUserByUsername, createUser } = require('../db')
 
@@ -18,6 +20,7 @@ usersRouter.get('/', async (req, res) => {
     });
   });
 
+
 usersRouter.post('/login', async (req, res, next) => {
     const { username, password } = req.body;
   
@@ -31,10 +34,13 @@ usersRouter.post('/login', async (req, res, next) => {
   
     try {
       const user = await getUserByUsername(username);
+      const hashedPassword = user.password;
 
       const { id } = user;
 
-      if (user && user.password == password) {
+      bcrypt.compare(password, hashedPassword, function(err, passwordsMatch) {
+
+      if (passwordsMatch) {
       
         const token = jwt.sign({ username, password, id }, process.env.JWT_SECRET, { expiresIn: '1h' });
   
@@ -45,15 +51,21 @@ usersRouter.post('/login', async (req, res, next) => {
           message: 'Username or password is incorrect'
         });
       }
-    } catch(error) {
+    });
+    }
+     catch(error) {
       console.log(error);
       next(error);
     }
+  
   });
+
+
 
 
 usersRouter.post('/register', async (req, res, next) => {
   const { username, password, name } = req.body;
+  const SALT_COUNT = 10;
 
   try {
     const userExists = await getUserByUsername(username);
@@ -65,15 +77,17 @@ usersRouter.post('/register', async (req, res, next) => {
       });
     }
     
-     const user = await createUser({
-       username,
-       password,
-       name,
-     });
+    bcrypt.hash(password,SALT_COUNT, function(err, hashedPassword) {
+     createUser({
+        username,
+         password: hashedPassword,
+        name,
+      });
+    });
+
 
      const token = jwt.sign({ 
-      id: user.id, 
-      username
+       username
     }, process.env.JWT_SECRET, {
       expiresIn: '1w'
     });

@@ -19,6 +19,9 @@ const {
     
  } = require('./index');
 
+const bcrypt = require('bcrypt');
+
+
 async function testDB() {
    try {
 
@@ -175,32 +178,41 @@ async function dropTables() {
   }
 
 async function createInitialUsers() {
+   
+   const tonyPass = 'password12';
+   const monaPass = 'lisa12';
+   const jackPass = 'jackspass';
+   const SALT_COUNT = 10;
+   
    try {
-     const tony = await createUser({
+   
+   const tony = await createUser({
          username: 'tony', 
-         password: 'tony123',
+         password: await bcrypt.hash(tonyPass, SALT_COUNT),
          name: 'Tony Dyleuth'
-     });
+        });
+   
 
      const mona = await createUser({
          username: 'mona',
-         password: 'lisa12',
+         password:  await bcrypt.hash(monaPass,SALT_COUNT),
          name: 'Mona Lisa Navaorro'
      });
 
      const jack = await createUser({
         username: 'jack',
-        password: 'password12',
+        password:  await bcrypt.hash(jackPass,SALT_COUNT),
         name: 'Jack Smith'
     });
 
      console.log("Finished creating users!");
    }
+
    catch(error){
        console.error("Error creating users!")
        throw error;
    }
- }
+}
 
 
  async function createInitialActivities() {
