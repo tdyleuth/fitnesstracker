@@ -2,6 +2,7 @@ const express = require('express');
 const usersRouter = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const SALT_COUNT = 10;
 
 
 const  { getAllUsers, getUserByUsername, createUser } = require('../db')
@@ -20,51 +21,10 @@ usersRouter.get('/', async (req, res) => {
     });
   });
 
-//Log in the user (Require username and password)
-usersRouter.post('/login', async (req, res, next) => {
-    const { username, password } = req.body;
-  
-  
-    if (!username || !password) {
-      next({
-        name: "MissingCredentialsError",
-        message: "Please supply both a username and password"
-      });
-    }
-  
-    try {
-      const user = await getUserByUsername(username);
-      const hashedPassword = user.password;
-
-      const { id } = user;
-
-      bcrypt.compare(password, hashedPassword, function(err, passwordsMatch) {
-
-      if (passwordsMatch) {
-      
-        const token = jwt.sign({ username, password, id }, process.env.JWT_SECRET, { expiresIn: '1w' });
-  
-        res.send({ message: "You're logged in!", token });
-      } else {
-        next({ 
-          name: 'IncorrectCredentialsError', 
-          message: 'Username or password is incorrect'
-        });
-      }
-    });
-    }
-     catch(error) {
-      console.log(error);
-      next(error);
-    }
-  
-  });
-
 
 //Create new user (Require username and password)
 usersRouter.post('/register', async (req, res, next) => {
     const { username, password, name } = req.body;
-    const SALT_COUNT = 10;
   
     try {
       const userExist = await getUserByUsername(username);
@@ -83,13 +43,17 @@ usersRouter.post('/register', async (req, res, next) => {
         });
       }
 
-      const hashedPassword = bcrypt.hash(password, SALT_COUNT);
+     bcrypt.hash(password, SALT_COUNT, function(err, hashedPassword){
+     if (err){
+       throw error;
+     } else {
         createUser({
           username,
           password:hashedPassword,
           name,
           });
-  
+        }
+      });
 
       const token = jwt.sign({ 
          username
@@ -107,6 +71,50 @@ usersRouter.post('/register', async (req, res, next) => {
     } 
   });
 
+
+//Log in the user (Require username and password)
+usersRouter.post('/login', async (req, res, next) => {
+  const { username, password } = req.body;
+
+
+  if (!username || !password) {
+    next({
+      name: "MissingCredentialsError",
+      message: "Please supply both a username and password"
+    });
+  }
+
+  try {
+    const user = await getUserByUsername(username);
+    const hashedPassword = user.password;
+    const { id } = user;
+
+    bcrypt.compare(password, hashedPassword, function(err, passwordsMatch) {
+    
+    if (err){
+      throw error;
+    }
+       else {
+      if (passwordsMatch) {
+    
+      const token = jwt.sign({ username, password, id }, process.env.JWT_SECRET, { expiresIn: '1w' });
+
+      res.send({ message: "You're logged in!", token });
+
+      } else {
+        next({ 
+        name: 'IncorrectCredentialsError', 
+        message: 'Username or password is incorrect'
+        });
+      }
+    }
+  });
+  }
+   catch(error) {
+    console.log(error);
+    next(error);
+  }
+});
 
   
 module.exports = usersRouter;

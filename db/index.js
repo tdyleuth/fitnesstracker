@@ -121,7 +121,7 @@ async function getAllActivities() {
 }
 
 async function createActivity({
-  
+
   name,
   description
 
@@ -164,6 +164,30 @@ async function updateActivity(id, fields = {}) {
       throw error;
     }
   }
+
+async function getActivityById(activityId) {
+    try {
+      const { rows: [ activity ] } = await client.query(`
+        SELECT *
+        FROM activities
+        WHERE id=${ activityId }
+      `);
+  
+      if (!activity) {
+        throw {
+          name: "ActivityNotFoundError",
+          message: "Could not find a activity with that activityId"
+        };
+      }
+  
+      return activity;
+
+    } catch (error) {
+      throw error;
+    }
+  }
+
+
 
 
 
@@ -291,9 +315,8 @@ async function getPublicRoutinesByUser({
 }
 
 
-async function getPublicRoutinesByActivity({
-  activityId
-}) {
+async function getPublicRoutinesByActivity(activityId)
+ {
   try{
    
     const { rows: [ routines ]} = await client.query(`
@@ -301,13 +324,47 @@ async function getPublicRoutinesByActivity({
     FROM routine_activities
     INNER JOIN routines ON routine_activities."routineId" = routines.id
     INNER JOIN activities ON routine_activities."activityId" = activities.id
-    WHERE public = 'true' AND routine_activities."activityId" = $1;   
-    `, [activityId]);
+    WHERE public = 'true' AND routine_activities."activityId" = ${activityId};   
+    `);
 
     return routines;
 
   }
   catch(error){
+    throw error;
+  }
+}
+
+async function destroyRoutine(routineId) {
+
+  try {
+    await client.query(`
+    DELETE FROM routines
+    WHERE id = ${routineId};
+    `);
+    } catch(error){
+       throw error;
+      }
+}
+
+async function getRoutineById(routineId) {
+  try {
+    const { rows: [ routine ] } = await client.query(`
+      SELECT *
+      FROM routines
+      WHERE id=${ routineId }
+    `);
+
+    if (!routine) {
+      throw {
+        name: "RoutineNotFoundError",
+        message: "Could not find a routine with that routineId"
+      };
+    }
+
+    return routine;
+
+  } catch (error) {
     throw error;
   }
 }
@@ -371,16 +428,38 @@ async function updateRoutineActivity(id, fields = {}) {
     }
   }
 
-async function destroyRoutineActivity({
-    id
-}) {
+
+
+async function destroyRoutineActivity(routineId) {
   try {
       await client.query(`
       DELETE FROM routine_activities
-      WHERE id = $1;
-      `,[id])
+      WHERE "routineId" = ${routineId};
+      `);
    } catch(error){
       throw error;
+  }
+}
+
+async function getRoutineActivityById(routineActivityId) {
+  try {
+    const { rows: [ routine_activity ] } = await client.query(`
+      SELECT *
+      FROM routine_activities
+      WHERE id=${ routineActivityId }
+    `);
+
+    if (!routine_activity) {
+      throw {
+        name: "RoutineActivityNotFoundError",
+        message: "Could not find a routine_activity with that routine_activiityId"
+      };
+    }
+
+    return routine_activity;
+
+  } catch (error) {
+    throw error;
   }
 }
 
@@ -395,16 +474,20 @@ module.exports = {
     getAllActivities,
     createActivity,
     updateActivity,
+    getActivityById,
     getAllRoutines,
     getPublicRoutines,
     getAllRoutinesByUser,
     getPublicRoutinesByUser,
     getPublicRoutinesByActivity,
+    getRoutineById,
     createRoutine,
     updateRoutine,
+    destroyRoutine,
     addActivityToRoutine,
     getAllRoutinesActivities,
     updateRoutineActivity,
+    getRoutineActivityById,
     destroyRoutineActivity,
 }
 

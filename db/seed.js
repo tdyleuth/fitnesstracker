@@ -63,10 +63,9 @@ async function testDB() {
    console.log("Result:", publicRoutinesByUser)
 
 
-   console.log("Testing getAllRoutinesByActivity")
-   const AllRoutinesByActivity = await getPublicRoutinesByActivity({
-       activityId: '1'
-   });
+   console.log("Testing getPublicRoutinesByActivity")
+   const AllRoutinesByActivity = await getPublicRoutinesByActivity(1)
+
    console.log("Result:", AllRoutinesByActivity)
 
 
@@ -91,9 +90,7 @@ async function testDB() {
    console.log("Result:", updateedRoutineActivitiesResults)
 
    console.log("Testing destroyRoutineActivitY")
-   const destroyedActivityResults = await destroyRoutineActivity ({
-       id: 1
-   });
+   const destroyedActivityResults = await destroyRoutineActivity(1);
    console.log("Result:", destroyedActivityResults)
 
 
