@@ -44,7 +44,6 @@ apiRouter.use(async (req, res, next) => {
   
   
 
-
 const usersRouter = require('./users');
 apiRouter.use('/users', usersRouter);
 
@@ -54,6 +53,8 @@ apiRouter.use('/activities', activitiesRouter);
 const routinesRouter = require('./routines');
 apiRouter.use('/routines', routinesRouter);
 
+const routinesActivitiesRouter = require('./routines_activities');
+apiRouter.use('/routines', routinesActivitiesRouter);
 
 
 

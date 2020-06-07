@@ -20,7 +20,7 @@ usersRouter.get('/', async (req, res) => {
     });
   });
 
-
+//Log in the user (Require username and password)
 usersRouter.post('/login', async (req, res, next) => {
     const { username, password } = req.body;
   
@@ -42,7 +42,7 @@ usersRouter.post('/login', async (req, res, next) => {
 
       if (passwordsMatch) {
       
-        const token = jwt.sign({ username, password, id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ username, password, id }, process.env.JWT_SECRET, { expiresIn: '1w' });
   
         res.send({ message: "You're logged in!", token });
       } else {
@@ -61,7 +61,7 @@ usersRouter.post('/login', async (req, res, next) => {
   });
 
 
-
+//Create new user (Require username and password)
 usersRouter.post('/register', async (req, res, next) => {
     const { username, password, name } = req.body;
     const SALT_COUNT = 10;

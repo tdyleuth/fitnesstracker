@@ -39,7 +39,7 @@ activitiesRouter.post('/',requireUser, async (req, res, next) => {
       activity
       })
     } else {
-      next({ name:'NoActivityRetrieved', message: 'No activity Retrieved!'})
+      next({ name:'NoActivityRetrievedError', message: 'No activity Retrieved!'})
     }
   }
   catch ({ name, message }) {
