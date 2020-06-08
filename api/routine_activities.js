@@ -15,8 +15,7 @@ routineActivitiesRouter.use((req, res, next) => {
 
 routineActivitiesRouter.get('/', async (req, res) => {
   const routine_activities = await getAllRoutinesActivities();
-  console.log("FGDFD")
-
+ 
   res.send({
    routine_activities
   });
