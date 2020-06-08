@@ -69,14 +69,11 @@ async function testDB() {
    });
    console.log("Result:", PublicRoutinesByUser)
 
-
-
    console.log("Testing getPublicRoutinesByActivity")
    const AllRoutinesByActivity = await getPublicRoutinesByActivity({
        activityId: 1
     
     });
-
    console.log("Result:", AllRoutinesByActivity)
 
 
@@ -103,18 +100,14 @@ async function testDB() {
    const destroyedActivityResults = await destroyRoutineActivity(1);
    console.log("Result:", destroyedActivityResults)
 
-
-
    console.log("Finished testing DB")
    }
    catch (error){
     console.error("Error testing DB!")
     throw error;
    }
-
-
-
 }
+
 
 async function dropTables() {
     try {
@@ -332,9 +325,7 @@ async function createInitialUsers() {
         throw error;
     
     }
-
  }
-
 
 
   async function rebuildDB(){
