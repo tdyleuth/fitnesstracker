@@ -244,15 +244,17 @@ async function updateRoutine(id, fields = {}) {
 async function getAllRoutines() {
 
   try {
-    const { rows } = await client.query(`
+    const { rows:routinesIds } = await client.query(`
 
-    SELECT routines.id AS id, routines."creatorId" AS userId, routines.name AS routine, routines.goal AS goal, routines.public AS public, activities.name as activity
-    FROM routine_activities
-    INNER JOIN routines ON routine_activities."routineId" = routines.id
-    INNER JOIN activities ON routine_activities."activityId" = activities.id;
+    SELECT id
+    FROM routines;
     `);
 
-   return rows;
+    const routines = await Promise.all(routinesIds.map(
+      routine => getRoutineById( routine.id )
+    ));
+
+    return routines;
   }
 
   catch (error) {
@@ -262,13 +264,17 @@ async function getAllRoutines() {
 
 async function getPublicRoutines() {
   try {
-    const { rows: [ routines ] } = await client.query(`
-    SELECT routines.id AS id, routines."creatorId" AS userId, routines.name AS routine, routines.goal AS goal, routines.public AS public, activities.name as activity
-    FROM routine_activities
-    INNER JOIN routines ON routine_activities."routineId" = routines.id
-    INNER JOIN activities ON routine_activities."activityId" = activities.id
-    WHERE public = 'true';   
+    const { rows: routinesIds } = await client.query(`
+    SELECT id
+    FROM routines
+    WHERE public = 'true';
     `);
+  
+
+    const routines = await Promise.all(routinesIds.map(
+      routine => getRoutineById( routine.id )
+    ));
+
 
     return routines;
   } catch(error){
@@ -281,11 +287,16 @@ async function getAllRoutinesByUser({
 }) {
   try{
    
-    const { rows: [ routines ]} = await client.query(`
-        SELECT routines.id AS id, users.username AS username, routines.name AS routine, routines.goal AS goal, routines.public AS public FROM routines
+    const { rows: routinesIds } = await client.query(`
+        SELECT routines.id FROM routines
         INNER JOIN users ON routines."creatorId" = users.id
         WHERE users.username = $1;
     `, [username]);
+
+    const routines = await Promise.all(routinesIds.map(
+      routine => getRoutineById( routine.id )
+    ));
+
 
     return routines;
 
@@ -300,11 +311,16 @@ async function getPublicRoutinesByUser({
 }) {
   try{
    
-    const { rows: [ routines ]} = await client.query(`
-        SELECT routines.id AS id, users.username AS username, routines.name AS routine, routines.goal AS goal, routines.public AS public FROM routines
+    const { rows: routinesIds } = await client.query(`
+        SELECT routines.id FROM routines
         INNER JOIN users ON routines."creatorId" = users.id
         WHERE public = 'true' AND users.username = $1;
     `, [username]);
+
+    const routines = await Promise.all(routinesIds.map(
+      routine => getRoutineById( routine.id )
+    ));
+
 
     return routines;
 
@@ -315,18 +331,25 @@ async function getPublicRoutinesByUser({
 }
 
 
-async function getPublicRoutinesByActivity(activityId)
+async function getPublicRoutinesByActivity({
+  activityId
+})
  {
   try{
    
-    const { rows: [ routines ]} = await client.query(`
-    SELECT routines.id AS id, routines."creatorId" AS userId, routines.name AS routine, routines.goal AS goal, routines.public AS public, activities.name as activity
+    const { rows: routinesIds } = await client.query(`
+    SELECT routines.id
     FROM routine_activities
     INNER JOIN routines ON routine_activities."routineId" = routines.id
     INNER JOIN activities ON routine_activities."activityId" = activities.id
     WHERE public = 'true' AND routine_activities."activityId" = ${activityId};   
     `);
 
+
+    const routines = await Promise.all(routinesIds.map(
+      routine => getRoutineById( routine.id )
+    ));
+    
     return routines;
 
   }
@@ -361,6 +384,22 @@ async function getRoutineById(routineId) {
         message: "Could not find a routine with that routineId"
       };
     }
+
+    const { rows: activities } = await client.query(`
+       SELECT activities.* FROM activities
+       JOIN routine_activities ON activities.id = routine_activities."activityId"
+       WHERE routine_activities."routineId" = ${routineId};
+    `)
+
+    const { rows: [username] } = await client.query(`
+       SELECT * FROM users
+       WHERE id =$1;
+    `, [routine.creatorId] );
+
+    routine.activities = activities;
+    routine.username = username;
+
+    delete routine.username;
 
     return routine;
 

@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const SALT_COUNT = 10;
 
 
-const  { getAllUsers, getUserByUsername, createUser } = require('../db')
+const  { getAllUsers, getUserByUsername, createUser, getPublicRoutinesByUser} = require('../db')
 
 usersRouter.use((req, res, next) => {
     console.log("A request is being made to /users");
@@ -84,6 +84,16 @@ usersRouter.post('/login', async (req, res, next) => {
     });
   }
 
+  const userExist = await getUserByUsername(username);
+  
+      if (!userExist) {
+        next({
+          name: 'UserExistsError',
+          message: 'Username does not exist'
+        });
+      }
+
+
   try {
     const user = await getUserByUsername(username);
     const hashedPassword = user.password;
@@ -110,10 +120,39 @@ usersRouter.post('/login', async (req, res, next) => {
     }
   });
   }
-   catch(error) {
-    console.log(error);
-    next(error);
+   catch({ name, message }) {
+    next({ name, message });
   }
+});
+
+
+//Get public routines by user
+usersRouter.get('/:username', async (req, res, next) => {
+  const { username } = req.params;
+  console.log(username);
+  
+  try {
+
+    const userExist = await getUserByUsername(username);
+  
+      if (!userExist) {
+        next({
+          name: 'UserExistsError',
+          message: 'Username does not exist'
+        });
+      }
+
+    const publicRoutines = await getPublicRoutinesByUser({username});
+
+    res.send({
+       publicRoutines
+    });
+
+
+  }catch({ name, message }){
+    next({ name, message })
+  }
+
 });
 
   

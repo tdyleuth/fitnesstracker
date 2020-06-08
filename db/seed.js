@@ -9,6 +9,7 @@ const {
     getAllRoutines,
     getPublicRoutines,
     getAllRoutinesByUser,
+    getPublicRoutinesByUser,
     getPublicRoutinesByActivity,
     createRoutine,
     updateRoutine,
@@ -56,18 +57,27 @@ async function testDB() {
    const publicRoutines = await getPublicRoutines();
    console.log("Result:", publicRoutines)
 
-   console.log("Testing getPublicAllRoutinesByUser")
-   const publicRoutinesByUser = await getAllRoutinesByUser({
+   console.log("Testing AllRoutinesByUser")
+   const AllRoutinesByUser = await getAllRoutinesByUser({
        username: 'tony'
    });
-   console.log("Result:", publicRoutinesByUser)
+   console.log("Result:", AllRoutinesByUser)
+
+   console.log("Testing getPublicRoutinesByUser")
+   const PublicRoutinesByUser = await getPublicRoutinesByUser({
+       username: 'mona'
+   });
+   console.log("Result:", PublicRoutinesByUser)
+
 
 
    console.log("Testing getPublicRoutinesByActivity")
-   const AllRoutinesByActivity = await getPublicRoutinesByActivity(1)
+   const AllRoutinesByActivity = await getPublicRoutinesByActivity({
+       activityId: 1
+    
+    });
 
    console.log("Result:", AllRoutinesByActivity)
-
 
 
    console.log("Testing updateRoutine")
@@ -259,7 +269,7 @@ async function createInitialUsers() {
     const fullBody = await createRoutine({
         creatorId: mona.id,
         name: 'Full Body Day',
-        goal: 'Total body workout for a month',
+        goal: 'Work out entire body',
         public: true
     });
 
